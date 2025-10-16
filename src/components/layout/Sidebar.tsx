@@ -18,7 +18,8 @@ import {
   BarChart3,
   Zap,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Key
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -30,6 +31,7 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'User Management', href: '/users', icon: Users },
   { name: 'Strategy Management', href: '/strategies', icon: Activity },
+  { name: 'Change Password', href: '/change-password', icon: Key },
   // Future features (commented out for now)
   // { name: 'Orders & Trades', href: '/trades', icon: BarChart3 },
   // { name: 'Risk Management', href: '/risk', icon: Shield },

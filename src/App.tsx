@@ -17,6 +17,7 @@ import { SecurityManagement } from "./components/security/SecurityManagement";
 import { PlatformSettings } from "./components/settings/PlatformSettings";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./components/auth/LoginPage";
+import { ChangePassword } from "./components/auth/ChangePassword";
 import BrokerManagement from "./components/broker/Broker";
 
 
@@ -39,6 +40,7 @@ const AppRoutes = () => {
         <Route path="/register" element={<LoginPage />} />
         <Route path="/users" element={<UserManagement />} />
         <Route path="/strategies" element={<StrategyManagement />} />
+        <Route path="/change-password" element={<ChangePassword />} />
         <Route path="/brokers" element={<BrokerManagement/>} />
         <Route path="/trades" element={<div className="text-foreground">Orders & Trades - Coming Soon</div>} />
         <Route path="/compliance" element={<div className="text-foreground">Compliance Center - Coming Soon</div>} />

@@ -35,19 +35,19 @@ import Cookies from 'js-cookie';
 
 interface Strategy {
   _id: string;
-  strategyName: string;
-  strategyType: string;
-  userId: {
+  name: string;
+  type: string;
+  created_by: {
     _id: string;
     username: string;
     email: string;
   };
-  status: 'active' | 'paused' | 'stopped';
-  instruments: string[];
-  legs: any[];
+  status: 'active' | 'paused' | 'stopped' | 'draft' | 'completed' | 'backtested';
+  instruments: any[];
+  order_legs: any[];
   createdAt: string;
-  squareOff?: string;
-  selectedDays?: string[];
+  square_off_time?: string;
+  trading_days?: any;
   longEntryConditions?: any[];
   shortEntryConditions?: any[];
   exitConditions?: any[];
@@ -115,15 +115,15 @@ export const StrategyEditForm: React.FC<StrategyEditFormProps> = ({
       // Ensure all form data has proper default values
       setFormData({ 
         ...strategy,
-        strategyType: strategy.strategyType || 'Time Based',
+        type: strategy.type || 'time_based',
         status: strategy.status || 'active',
         chartType: strategy.chartType || 'Candlestick',
         interval: strategy.interval || '5m',
-        squareOff: strategy.squareOff || '15:15'
+        square_off_time: strategy.square_off_time || '15:15'
       });
       
       // Ensure order legs have proper default values
-      const defaultLegs = (strategy.legs || []).map(leg => ({
+      const defaultLegs = (strategy.order_legs || []).map(leg => ({
         ...leg,
         orderType: leg.orderType || 'SELL',
         optionType: leg.optionType || 'PE',
@@ -145,7 +145,7 @@ export const StrategyEditForm: React.FC<StrategyEditFormProps> = ({
       
       setOrderLegs(defaultLegs);
       setSelectedInstruments(strategy.instruments || []);
-      setSelectedDays(strategy.selectedDays || []);
+      setSelectedDays(strategy.trading_days || []);
       
       // Filter out conditions with empty values and ensure defaults
       const filterConditions = (conditions: any[]) => {
@@ -269,12 +269,14 @@ export const StrategyEditForm: React.FC<StrategyEditFormProps> = ({
     try {
       const updatedStrategy = {
         ...formData,
-        legs: orderLegs,
+        order_legs: orderLegs,
         instruments: selectedInstruments,
-        selectedDays,
-        longEntryConditions,
-        shortEntryConditions,
-        exitConditions
+        trading_days: selectedDays,
+        entry_conditions: {
+          long: longEntryConditions,
+          short: shortEntryConditions,
+          exit: exitConditions
+        }
       };
 
       const response = await fetch(`http://localhost:4000/api/admin/strategies/${formData._id}`, {
@@ -306,7 +308,7 @@ export const StrategyEditForm: React.FC<StrategyEditFormProps> = ({
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-bold">
-              Edit Strategy: {formData.strategyName}
+              Edit Strategy: {formData.name}
             </DialogTitle>
             <div className="flex items-center space-x-2">
               <Button
@@ -347,23 +349,23 @@ export const StrategyEditForm: React.FC<StrategyEditFormProps> = ({
                     <Label htmlFor="strategyName">Strategy Name</Label>
                     <Input
                       id="strategyName"
-                      value={formData.strategyName}
-                      onChange={(e) => setFormData({ ...formData, strategyName: e.target.value })}
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     />
                   </div>
                   
                   <div>
                     <Label>Strategy Type</Label>
                     <Select
-                      value={formData.strategyType || 'Time Based'}
-                      onValueChange={(value) => setFormData({ ...formData, strategyType: value })}
+                      value={formData.type || 'time_based'}
+                      onValueChange={(value) => setFormData({ ...formData, type: value })}
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Time Based">Time Based</SelectItem>
-                        <SelectItem value="Indicator Based">Indicator Based</SelectItem>
+                        <SelectItem value="time_based">Time Based</SelectItem>
+                        <SelectItem value="indicator_based">Indicator Based</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -445,7 +447,7 @@ export const StrategyEditForm: React.FC<StrategyEditFormProps> = ({
               </CardContent>
             </Card>
 
-            {formData.strategyType === 'Time Based' && (
+            {formData.type === 'time_based' && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center">
@@ -458,8 +460,8 @@ export const StrategyEditForm: React.FC<StrategyEditFormProps> = ({
                     <Label>Square Off Time</Label>
                     <Input
                       type="time"
-                      value={formData.squareOff || '15:15'}
-                      onChange={(e) => setFormData({ ...formData, squareOff: e.target.value })}
+                      value={formData.square_off_time || '15:15'}
+                      onChange={(e) => setFormData({ ...formData, square_off_time: e.target.value })}
                     />
                   </div>
                   
@@ -863,7 +865,7 @@ export const StrategyEditForm: React.FC<StrategyEditFormProps> = ({
               </>
             )}
 
-            {formData.strategyType === 'Time Based' && (
+            {formData.type === 'time_based' && (
               <Card>
                 <CardContent className="text-center py-8 text-muted-foreground">
                   <Clock className="w-12 h-12 mx-auto mb-4 opacity-50" />

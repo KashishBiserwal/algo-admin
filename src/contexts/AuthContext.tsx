@@ -52,21 +52,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       try {
         const token = getCookie('auth_token');
+        console.log('🔍 Verifying auth with token:', token ? 'exists' : 'missing');
+        
         if (token) {
-          const response = await axios.get('http://localhost:4000/api/auth/me', {
+          const response = await axios.get('http://localhost:4000/api/auth/admin/me', {
             headers: {
               Authorization: `Bearer ${token}`
             }
           });
+          console.log('🔍 Auth verification response:', response.data);
+          
           if (response.data.success) {
             setUser(response.data.user);
             setIsAuthenticated(true);
+            console.log('✅ Auth verification successful');
           } else {
             throw new Error('Invalid response');
           }
+        } else {
+          console.log('❌ No token found');
+          setUser(null);
+          setIsAuthenticated(false);
         }
-      } catch (err) {
-        console.error('Auth verification failed:', err);
+      } catch (err: any) {
+        console.error('❌ Auth verification failed:', err.response?.data || err.message);
         removeCookie('auth_token');
         setUser(null);
         setIsAuthenticated(false);
@@ -107,19 +116,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     setError(null);
     try {
+      console.log('🔐 Attempting admin login for:', email);
       const response = await axios.post('http://localhost:4000/api/auth/admin-login', {
         email,
         password
       });
       
+      console.log('🔐 Login response:', response.data);
+      
       setCookie('auth_token', response.data.token, { 
         expires: 7, 
         secure: false, // Set to true in production with HTTPS
-        sameSite: 'lax' 
+        sameSite: 'lax',
+        path: '/' // Ensure cookie is available for all paths
       });
+      
+      console.log('🍪 Cookie set:', getCookie('auth_token') ? 'success' : 'failed');
       setUser(response.data.user);
       setIsAuthenticated(true);
+      console.log('✅ Login successful');
     } catch (err: any) {
+      console.error('❌ Login failed:', err.response?.data || err.message);
       setError(err.response?.data?.message || 'Login failed');
       throw err;
     } finally {

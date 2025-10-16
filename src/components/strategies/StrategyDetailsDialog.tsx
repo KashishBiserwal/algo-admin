@@ -45,24 +45,23 @@ import { StrategyEditForm } from './StrategyEditForm';
 
 interface Strategy {
   _id: string;
-  strategyName: string;
-  strategyType: string;
-  userId: {
+  name: string;
+  type: string;
+  created_by: {
     _id: string;
     username: string;
     email: string;
   };
-  status: 'active' | 'paused' | 'stopped';
-  instruments: string[];
-  legs: any[];
+  status: 'active' | 'paused' | 'stopped' | 'draft' | 'completed' | 'backtested';
+  instruments: any[];
+  order_legs: any[];
   createdAt: string;
-  lastModifiedAt?: string;
+  updatedAt?: string;
   lastModifiedBy?: string;
-  squareOff?: string;
-  selectedDays?: string[];
-  longEntryConditions?: any[];
-  shortEntryConditions?: any[];
-  exitConditions?: any[];
+  square_off_time?: string;
+  trading_days?: any;
+  entry_conditions?: any[];
+  risk_management?: any;
 }
 
 interface StrategyDetailsDialogProps {
@@ -237,13 +236,13 @@ export const StrategyDetailsDialog: React.FC<StrategyDetailsDialogProps> = ({
                     {isEditing ? (
                       <Input
                         id="strategyName"
-                        value={editedStrategy?.strategyName || ''}
+                        value={editedStrategy?.name || ''}
                         onChange={(e) => setEditedStrategy(prev => 
-                          prev ? { ...prev, strategyName: e.target.value } : null
+                          prev ? { ...prev, name: e.target.value } : null
                         )}
                       />
                     ) : (
-                      <p className="text-sm font-medium">{strategy.strategyName}</p>
+                      <p className="text-sm font-medium">{strategy.name}</p>
                     )}
                   </div>
                   
@@ -251,9 +250,9 @@ export const StrategyDetailsDialog: React.FC<StrategyDetailsDialogProps> = ({
                     <Label>Strategy Type</Label>
                     {isEditing ? (
                       <Select
-                        value={editedStrategy?.strategyType || ''}
+                        value={editedStrategy?.type || ''}
                         onValueChange={(value) => setEditedStrategy(prev => 
-                          prev ? { ...prev, strategyType: value } : null
+                          prev ? { ...prev, type: value } : null
                         )}
                       >
                         <SelectTrigger>
@@ -266,7 +265,7 @@ export const StrategyDetailsDialog: React.FC<StrategyDetailsDialogProps> = ({
                       </Select>
                     ) : (
                       <Badge variant="outline" className="border-blue-500 text-blue-500">
-                        {strategy.strategyType}
+                        {strategy.type}
                       </Badge>
                     )}
                   </div>
@@ -290,7 +289,7 @@ export const StrategyDetailsDialog: React.FC<StrategyDetailsDialogProps> = ({
                     <div className="flex flex-wrap gap-1 mt-1">
                       {strategy.instruments?.map((instrument, index) => (
                         <Badge key={index} variant="outline" className="text-xs">
-                          {instrument}
+                          {typeof instrument === 'string' ? instrument : instrument.symbol || instrument.name}
                         </Badge>
                       ))}
                     </div>
@@ -306,8 +305,8 @@ export const StrategyDetailsDialog: React.FC<StrategyDetailsDialogProps> = ({
                   <div className="flex items-center space-x-2">
                     <User className="w-4 h-4" />
                     <div>
-                      <p className="font-medium">{strategy.userId?.username}</p>
-                      <p className="text-sm text-muted-foreground">{strategy.userId?.email}</p>
+                      <p className="font-medium">{strategy.created_by?.username}</p>
+                      <p className="text-sm text-muted-foreground">{strategy.created_by?.email}</p>
                     </div>
                   </div>
                   
@@ -315,9 +314,9 @@ export const StrategyDetailsDialog: React.FC<StrategyDetailsDialogProps> = ({
                     <Calendar className="w-4 h-4" />
                     <div>
                       <p className="text-sm">Created: {new Date(strategy.createdAt).toLocaleDateString()}</p>
-                      {strategy.lastModifiedAt && (
+                      {strategy.updatedAt && (
                         <p className="text-sm text-muted-foreground">
-                          Modified: {new Date(strategy.lastModifiedAt).toLocaleDateString()}
+                          Modified: {new Date(strategy.updatedAt).toLocaleDateString()}
                         </p>
                       )}
                     </div>
@@ -330,10 +329,10 @@ export const StrategyDetailsDialog: React.FC<StrategyDetailsDialogProps> = ({
           <TabsContent value="legs" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Order Legs ({strategy.legs?.length || 0})</CardTitle>
+                <CardTitle className="text-lg">Order Legs ({strategy.order_legs?.length || 0})</CardTitle>
               </CardHeader>
               <CardContent>
-                {strategy.legs && strategy.legs.length > 0 ? (
+                {strategy.order_legs && strategy.order_legs.length > 0 ? (
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -347,7 +346,7 @@ export const StrategyDetailsDialog: React.FC<StrategyDetailsDialogProps> = ({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {strategy.legs.map((leg, index) => (
+                      {strategy.order_legs.map((leg, index) => (
                         <TableRow key={index}>
                           <TableCell>
                             <Badge variant={leg.orderType === 'BUY' ? 'default' : 'secondary'}>

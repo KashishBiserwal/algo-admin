@@ -34,18 +34,18 @@ import { useSearchParams } from 'react-router-dom';
 
 interface Strategy {
   _id: string;
-  strategyName: string;
-  strategyType: string;
-  userId: {
+  name: string;
+  type: string;
+  created_by: {
     _id: string;
     username: string;
     email: string;
   };
-  status: 'active' | 'paused' | 'stopped';
-  instruments: string[];
-  legs: any[];
+  status: 'active' | 'paused' | 'stopped' | 'draft' | 'completed' | 'backtested';
+  instruments: any[];
+  order_legs: any[];
   createdAt: string;
-  lastModifiedAt?: string;
+  updatedAt?: string;
   lastModifiedBy?: string;
 }
 
@@ -366,26 +366,26 @@ export const StrategyManagement: React.FC = () => {
                       <TableRow key={strategy._id}>
                         <TableCell>
                           <div>
-                            <div className="font-medium text-foreground">{strategy.strategyName}</div>
+                            <div className="font-medium text-foreground">{strategy.name}</div>
                             <div className="text-xs text-muted-foreground">{strategy._id}</div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div>
-                            <div className="font-medium text-foreground">{strategy.userId?.username}</div>
-                            <div className="text-sm text-muted-foreground">{strategy.userId?.email}</div>
+                            <div className="font-medium text-foreground">{strategy.created_by?.username}</div>
+                            <div className="text-sm text-muted-foreground">{strategy.created_by?.email}</div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="border-blue-500 text-blue-500">
-                            {strategy.strategyType}
+                            {strategy.type}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
                             {strategy.instruments?.slice(0, 2).map((instrument, index) => (
                               <Badge key={index} variant="outline" className="text-xs">
-                                {instrument}
+                                {typeof instrument === 'string' ? instrument : instrument.symbol || instrument.name}
                               </Badge>
                             ))}
                             {strategy.instruments?.length > 2 && (
@@ -397,7 +397,7 @@ export const StrategyManagement: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className="border-purple-500 text-purple-500">
-                            {strategy.legs?.length || 0} legs
+                            {strategy.order_legs?.length || 0} legs
                           </Badge>
                         </TableCell>
                         <TableCell>{new Date(strategy.createdAt).toLocaleDateString()}</TableCell>
